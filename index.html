@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הדרים - מיצים סחוטים ושייקים בריאים</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // מערכת ניהול משתמשים
+        const UserManager = {
+            isLoggedIn: () => localStorage.getItem('adminLoggedIn') === 'true',
+            login: (username, password) => {
+                if (username === 'יקיר' && password === 'Y123456') {
+                    localStorage.setItem('adminLoggedIn', 'true');
+                    localStorage.setItem('adminUsername', 'יקיר');
+                    return true;
+                }
+                return false;
+            },
+            logout: () => {
+                localStorage.removeItem('adminLoggedIn');
+                localStorage.removeItem('adminUsername');
+            },
+            getCurrentUser: () => localStorage.getItem('adminUsername')
+        };
+
+        // מערכת ניהול מחירים
+        const PriceManager = {
+            getPrices: () => {
+                const savedPrices = localStorage.getItem('hadarimPrices');
+                if (savedPrices) {
+                    return JSON.parse(savedPrices);
+                }
+                return {
+                    juices: {
+                        title: "מיצים סחוטים",
+                        icon: "🍊",
+                        items: [
+                            { name: "תפוז/גזר", prices: { S: 14, M: 22, L: 28 }, description: "מיץ טרי ומזין מתפוזים וגזר", icon: "🥕" },
+                            { name: "מיץ תפוחים", prices: { S: 18, M: 24, L: 28 }, description: "מיץ תפוחים סחוט במקום", icon: "🍎" }
+                        ]
+                    },
+                    refreshers: {
+                        title: "רעננים שלנו",
+                        icon: "🧊",
+                        items: [
+                            { name: "לימונענע גרוס", prices: { S: 18, M: 22, L: 27 }, description: "מרענן לימון ונענע", icon: "🍋" },
+                            { name: "לימון/מנגו/דבש", prices: { S: 22, M: 26, L: 30 }, description: "מרענן עם דבש טבעי", icon: "🥭" },
+                            { name: "לימון/פירות יער/תות/מנגו", prices: { S: 22, M: 26, L: 30 }, description: "מרענן פירות יער", icon: "🍓" }
+                        ]
+                    },
+                    healthy: {
+                        title: "בריאות מרעננת",
+                        icon: "🥬",
+                        items: [
+                            { name: "גזר/תפוח/גינגר", prices: { S: 20, M: 26, L: 30 }, description: "בריא ומזין עם גינגר", icon: "🥕" },
+                            { name: "סלרי/נענע/תפוח/גינגר", prices: { S: 20, M: 26, L: 30 }, description: "בריא עם סלרי ונענע", icon: "🥬" },
+                            { name: "סלק/תפוח/גזר/סלרי", prices: { S: 20, M: 26, L: 30 }, description: "בריא עם סלק", icon: "🟣" },
+                            { name: "לימון/סלרי/תפוח/גינגר", prices: { S: 20, M: 26, L: 30 }, description: "בריא עם לימון", icon: "🍋" }
+                        ]
+                    },
+                    yogurtShakes: {
+                        title: "שייקים על בסיס יוגורט",
+                        icon: "🥛",
+                        items: [
+                            { name: "אננס/מנגו/פסיפלורה", prices: { S: 22, M: 26, L: 30 }, description: "שייק טרופי על בסיס יוגורט", icon: "🍍" },
+                            { name: "בננה/תמר/פאקן", prices: { S: 24, M: 28, L: 32 }, description: "שייק מתוק עם פאקן", icon: "🍌" },
+                            { name: "פירות יער/מנגו/אננס/תות", prices: { S: 22, M: 26, L: 30 }, description: "שייק פירות יער", icon: "🍓" },
+                            { name: "מנגו/בננה/מלון/דבש", prices: { S: 22, M: 26, L: 30 }, description: "שייק מנגו עם דבש", icon: "🥭" }
+                        ]
+                    },
+                    orangeShakes: {
+                        title: "שייקים על בסיס תפוזים",
+                        icon: "🍊",
+                        items: [
+                            { name: "אננס/מנגו/פסיפלורה", prices: { S: 22, M: 26, L: 30 }, description: "שייק טרופי על בסיס תפוזים", icon: "🍍" },
+                            { name: "תות/מנגו/אננס", prices: { S: 22, M: 26, L: 30 }, description: "שייק תות מנגו", icon: "🍓" },
+                            { name: "בננה/פירות יער/ליצי/מנגו", prices: { S: 22, M: 26, L: 30 }, description: "שייק פירות יער", icon: "🍌" }
+                        ]
+                    },
+                    milkShakes: {
+                        title: "בסיס חלב / סויה / שקדים / שיבולת שועל",
+                        icon: "🥤",
+                        items: [
+                            { name: "אננס/מנגו/פסיפלורה", prices: { S: 22, M: 26, L: 30 }, description: "שייק טרופי", icon: "🍍" },
+                            { name: "בננה/תמר/פאקן", prices: { S: 24, M: 28, L: 32 }, description: "שייק מתוק", icon: "🍌" },
+                            { name: "מנגו/בננה/מלון/דבש", prices: { S: 22, M: 26, L: 30 }, description: "שייק מנגו", icon: "🥭" },
+                            { name: "פירות יער/מנגו/אננס/תות", prices: { S: 22, M: 26, L: 30 }, description: "שייק פירות יער", icon: "🍓" }
+                        ]
+                    }
+                };
+            },
+            savePrices: (prices) => {
+                localStorage.setItem('hadarimPrices', JSON.stringify(prices));
+                PRODUCTS_DATA = prices;
+            },
+            updatePrice: (category, itemIndex, size, newPrice) => {
+                const prices = PriceManager.getPrices();
+                if (prices[category] && prices[category].items[itemIndex]) {
+                    prices[category].items[itemIndex].prices[size] = parseInt(newPrice);
+                    PriceManager.savePrices(prices);
+                    return true;
+                }
+                return false;
+            }
+        };
+
+        // טעינת נתוני המוצרים
+        let PRODUCTS_DATA = PriceManager.getPrices();
+
+        // תוספות לשייקים
+        const EXTRAS = [
+            { name: "סקופ חלבון", price: 7, icon: "💪" },
+            { name: "פקאן", price: 2, icon: "🥜" },
+            { name: "ספירולינה", price: 6, icon: "🌿" },
+            { name: "סופר פוד", price: 4, icon: "✨" },
+            { name: "באבלס", price: 4, icon: "🫧" }
+        ];
+
+        // מערכת הזמנות
+        const OrdersManager = {
+            orders: JSON.parse(localStorage.getItem('hadarimOrders') || '[]'),
+            addOrder: (orderData) => {
+                const order = {
+                    id: Date.now(),
+                    date: new Date().toLocaleString('he-IL'),
+                    items: [...orderData.items],
+                    total: orderData.total,
+                    customerInfo: orderData.customerInfo || {},
+                    status: 'pending'
+                };
+                OrdersManager.orders.push(order);
+                OrdersManager.save();
+                return order;
+            },
+            updateOrderStatus: (orderId, newStatus) => {
+                const order = OrdersManager.orders.find(o => o.id === orderId);
+                if (order) {
+                    order.status = newStatus;
+                    OrdersManager.save();
+                    return true;
+                }
+                return false;
+            },
+            getOrders: () => OrdersManager.orders,
+            save: () => localStorage.setItem('hadarimOrders', JSON.stringify(OrdersManager.orders))
+        };
+
+        // מערכת סל קניות
+        const ShoppingCart = {
+            items: JSON.parse(localStorage.getItem('cartItems') || '[]'),
+            addItem: (product, size, price, extras = []) => {
+                const item = { id: Date.now(), product, size, price, extras, quantity: 1 };
+                ShoppingCart.items.push(item);
+                ShoppingCart.save();
+                ShoppingCart.updateCartUI();
+            },
+            removeItem: (itemId) => {
+                ShoppingCart.items = ShoppingCart.items.filter(item => item.id !== itemId);
+                ShoppingCart.save();
+                ShoppingCart.updateCartUI();
+            },
+            getTotal: () => ShoppingCart.items.reduce((total, item) => total + (item.price * item.quantity), 0),
+            clear: () => { ShoppingCart.items = []; ShoppingCart.save(); ShoppingCart.updateCartUI(); },
+            save: () => localStorage.setItem('cartItems', JSON.stringify(ShoppingCart.items)),
+            updateCartUI: () => {
+                const cartCount = document.querySelector('.cart-count');
+                if (cartCount) {
+                    const totalItems = ShoppingCart.items.reduce((sum, item) => sum + item.quantity, 0);
+                    cartCount.textContent = totalItems;
+                    cartCount.style.display = totalItems > 0 ? 'block' : 'none';
+                }
+            }
+        };
+
+        // Header Component
+        const Header = ({ currentPage, onPageChange, onCartToggle, cartItemCount, isAdmin }) => {
+            const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+            const [showLoginForm, setShowLoginForm] = useState(false);
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                const username = e.target.username.value;
+                const password = e.target.password.value;
+                if (UserManager.login(username, password)) {
+                    setShowLoginForm(false);
+                    window.location.reload();
+                } else {
+                    alert('שם משתמש או סיסמה שגויים');
+                }
+            };
+
+            const handleLogout = () => {
+                UserManager.logout();
+                window.location.reload();
+            };
+
+            return (
+                <header className="header">
+                    <div className="container">
+                        <div className="header-content">
+                            <a href="#" className="logo" onClick={(e) => { e.preventDefault(); onPageChange('home'); }}>
+                                🍊 הדרים
+                            </a>
+                            <nav className={`nav ${isMobileMenuOpen ? 'active' : ''}`}>
+                                <a href="#" className={currentPage === 'home' ? 'active' : ''} 
+                                   onClick={(e) => { e.preventDefault(); onPageChange('home'); setIsMobileMenuOpen(false); }}>
+                                    בית
+                                </a>
+                                <a href="#" className={currentPage === 'products' ? 'active' : ''} 
+                                   onClick={(e) => { e.preventDefault(); onPageChange('products'); setIsMobileMenuOpen(false); }}>
+                                    המוצרים שלנו
+                                </a>
+                                <a href="#" className={currentPage === 'about' ? 'active' : ''} 
+                                   onClick={(e) => { e.preventDefault(); onPageChange('about'); setIsMobileMenuOpen(false); }}>
+                                    אודותינו
+                                </a>
+                                <a href="#" className={currentPage === 'contact' ? 'active' : ''} 
+                                   onClick={(e) => { e.preventDefault(); onPageChange('contact'); setIsMobileMenuOpen(false); }}>
+                                    צור קשר
+                                </a>
+                                {isAdmin && (
+                                    <a href="#" className={currentPage === 'admin' ? 'active' : ''} 
+                                       onClick={(e) => { e.preventDefault(); onPageChange('admin'); setIsMobileMenuOpen(false); }}>
+                                        ניהול
+                                    </a>
+                                )}
+                            </nav>
+                            <div className="header-actions">
+                                <button className="cart-btn" onClick={onCartToggle}>
+                                    🛒
+                                    <span className="cart-count">{cartItemCount}</span>
+                                </button>
+                                {!isAdmin ? (
+                                    <button className="admin-login-btn" onClick={() => setShowLoginForm(true)}>
+                                        👤
+                                    </button>
+                                ) : (
+                                    <button className="admin-logout-btn" onClick={handleLogout}>
+                                        🚪
+                                    </button>
+                                )}
+                                <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+                                    {isMobileMenuOpen ? '✕' : '☰'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {showLoginForm && (
+                        <div className="login-overlay">
+                            <div className="login-form">
+                                <h3>התחברות מנהל</h3>
+                                <form onSubmit={handleLogin}>
+                                    <input type="text" name="username" placeholder="שם משתמש" required />
+                                    <input type="password" name="password" placeholder="סיסמה" required />
+                                    <div className="form-buttons">
+                                        <button type="submit">התחבר</button>
+                                        <button type="button" onClick={() => setShowLoginForm(false)}>ביטול</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </header>
+            );
+        };
+
+        // Home Page
+        const HomePage = () => (
+            <div className="fade-in">
+                <section className="hero">
+                    <div className="container">
+                        <h1>ברוכים הבאים להדרים</h1>
+                        <p>מיצים סחוטים טריים ושייקים בריאים בקרית אונו</p>
+                        <button className="cta-button">הזמן עכשיו</button>
+                    </div>
+                </section>
+                <section className="container">
+                    <div className="products-grid">
+                        <div className="product-card slide-in-left">
+                            <div className="product-icon">🍊</div>
+                            <h3>מיצים סחוטים</h3>
+                            <p>מיצים טריים וסחוטים במקום</p>
+                        </div>
+                        <div className="product-card slide-in-right">
+                            <div className="product-icon">🥤</div>
+                            <h3>שייקים בריאים</h3>
+                            <p>שייקים מזינים וטעימים</p>
+                        </div>
+                        <div className="product-card slide-in-left">
+                            <div className="product-icon">🧊</div>
+                            <h3>מרעננים</h3>
+                            <p>משקאות מרעננים עם נענע</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        );
+
+        // Product Card Component
+        const ProductCard = ({ product, category }) => {
+            const [selectedSize, setSelectedSize] = useState('M');
+            const [selectedExtras, setSelectedExtras] = useState([]);
+            const [showExtras, setShowExtras] = useState(false);
+            
+            const handleExtraToggle = (extra) => {
+                setSelectedExtras(prev => {
+                    const exists = prev.find(e => e.name === extra.name);
+                    if (exists) {
+                        return prev.filter(e => e.name !== extra.name);
+                    } else {
+                        return [...prev, extra];
+                    }
+                });
+            };
+            
+            const getTotalPrice = () => {
+                const basePrice = product.prices[selectedSize];
+                const extrasPrice = selectedExtras.reduce((sum, extra) => sum + extra.price, 0);
+                return basePrice + extrasPrice;
+            };
+            
+            const handleAddToCart = () => {
+                ShoppingCart.addItem(
+                    `${product.name} (${selectedSize})`,
+                    selectedSize,
+                    getTotalPrice(),
+                    selectedExtras.map(e => e.name)
+                );
+                alert('המוצר נוסף לסל הקניות!');
+            };
+            
+            return (
+                <div className="product-card">
+                    <div className="product-icon">{product.icon || category.icon}</div>
+                    <h3>{product.name}</h3>
+                    <p>{product.description}</p>
+                    
+                    <div className="size-selector">
+                        <h4>בחר גודל:</h4>
+                        <div className="size-buttons">
+                            {Object.entries(product.prices).map(([size, price]) => (
+                                <button
+                                    key={size}
+                                    className={selectedSize === size ? 'selected' : ''}
+                                    onClick={() => setSelectedSize(size)}
+                                >
+                                    {size} - {price}₪
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <button 
+                        className="extras-toggle-btn"
+                        onClick={() => setShowExtras(!showExtras)}
+                    >
+                        תוספות (אופציונלי)
+                    </button>
+                    
+                    {showExtras && (
+                        <div className="extras-section">
+                            <h4>תוספות:</h4>
+                            {EXTRAS.map(extra => (
+                                <label key={extra.name} className="extra-item">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedExtras.some(e => e.name === extra.name)}
+                                        onChange={() => handleExtraToggle(extra)}
+                                    />
+                                    <span className="extra-icon">{extra.icon}</span>
+                                    <span className="extra-name">{extra.name}</span>
+                                    <span className="extra-price">+{extra.price}₪</span>
+                                </label>
+                            ))}
+                        </div>
+                    )}
+                    
+                    <div className="product-total">
+                        <strong>סה"כ: {getTotalPrice()}₪</strong>
+                    </div>
+                    
+                    <button 
+                        className="add-to-cart-btn"
+                        onClick={handleAddToCart}
+                    >
+                        הוסף לסל
+                    </button>
+                </div>
+            );
+        };
+
+        // Products Page
+        const ProductsPage = () => (
+            <div className="fade-in">
+                <section className="hero">
+                    <div className="container">
+                        <h1>המוצרים שלנו</h1>
+                        <p>כל המוצרים שלנו מוכנים במקום ממצרכים טריים ואיכותיים</p>
+                    </div>
+                </section>
+                <section className="container">
+                    {Object.entries(PRODUCTS_DATA).map(([categoryKey, category]) => (
+                        <div key={categoryKey} className="category-section">
+                            <h2 className="category-title">
+                                <span className="category-icon">{category.icon}</span>
+                                {category.title}
+                            </h2>
+                            <div className="products-grid">
+                                {category.items.map((product, index) => (
+                                    <ProductCard
+                                        key={index}
+                                        product={product}
+                                        category={category}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </section>
+            </div>
+        );
+
+        // About Page
+        const AboutPage = () => (
+            <div className="fade-in">
+                <section className="hero">
+                    <div className="container">
+                        <h1>אודות הדרים</h1>
+                        <p>הסיפור שלנו מתחיל באהבה למיצים טריים</p>
+                    </div>
+                </section>
+                <section className="container">
+                    <div className="about-section">
+                        <h2>מי אנחנו?</h2>
+                        <div className="about-content">
+                            <div className="about-text">
+                                <p>הדרים הוא עסק המתמחה בייצור מיצים סחוטים ושייקים בריאים. כל מוצר שאנחנו מייצרים נעשה באהבה ובקפידה.</p>
+                                <p>אנחנו מאמינים שהבריאות מתחילה מהמזון שאנחנו אוכלים, ולכן אנחנו מתחייבים לספק לכם רק את הטוב ביותר.</p>
+                            </div>
+                            <div className="about-features">
+                                <h3>מה מיוחד בנו?</h3>
+                                <ul>
+                                    <li>מיצים טריים סחוטים במקום</li>
+                                    <li>ללא חומרים משמרים</li>
+                                    <li>מצרכים איכותיים ונבחרים בקפידה</li>
+                                    <li>שירות אישי וחם</li>
+                                    <li>מחירים הוגנים לכל כיס</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        );
+
+        // Contact Page
+        const ContactPage = () => (
+            <div className="fade-in">
+                <section className="hero">
+                    <div className="container">
+                        <h1>צור קשר</h1>
+                        <p>נשמח לשמוע מכם</p>
+                    </div>
+                </section>
+                <section className="container">
+                    <div className="contact-section">
+                        <h2>בואו נכיר!</h2>
+                        <p>אנחנו כאן בשבילכם, תמיד נשמח לעזור</p>
+                        <div className="contact-info">
+                            <div className="contact-item">
+                                <i className="fas fa-map-marker-alt"></i>
+                                <span>קרית אונו (ליד הבקום)</span>
+                            </div>
+                            <div className="contact-item">
+                                <i className="fas fa-phone"></i>
+                                <span>050-123465</span>
+                            </div>
+                            <div className="contact-item">
+                                <i className="fas fa-user"></i>
+                                <span>יקיר כהן - בעל העסק</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        );
+
+        // Shopping Cart Modal
+        const ShoppingCartModal = ({ isOpen, onClose }) => {
+            const [cartItems, setCartItems] = useState(ShoppingCart.items);
+
+            useEffect(() => {
+                setCartItems(ShoppingCart.items);
+            }, [isOpen]);
+
+            const handleRemoveItem = (itemId) => {
+                ShoppingCart.removeItem(itemId);
+                setCartItems([...ShoppingCart.items]);
+            };
+
+            if (!isOpen) return null;
+
+            return (
+                <div className="cart-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+                    <div className="cart-modal">
+                        <div className="cart-header">
+                            <h2>🛒 סל הקניות</h2>
+                            <button className="close-btn" onClick={onClose}>✕</button>
+                        </div>
+                        <div className="cart-items">
+                            {cartItems.length === 0 ? (
+                                <div className="empty-cart">
+                                    <div className="empty-cart-icon">🛒</div>
+                                    <p>הסל שלך ריק</p>
+                                    <small>הוסף מוצרים מהתפריט</small>
+                                </div>
+                            ) : (
+                                cartItems.map(item => (
+                                    <div key={item.id} className="cart-item">
+                                        <div className="item-info">
+                                            <h4>{item.product}</h4>
+                                            <p className="item-details">גודל: {item.size}</p>
+                                        </div>
+                                        <div className="item-price">{item.price}₪</div>
+                                        <button className="remove-btn" onClick={() => handleRemoveItem(item.id)}>
+                                            🗑️
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        {cartItems.length > 0 && (
+                            <div className="cart-footer">
+                                <div className="cart-summary">
+                                    <div className="cart-total">
+                                        <strong>סה"כ: {ShoppingCart.getTotal()}₪</strong>
+                                    </div>
+                                    <small>כולל מע"מ</small>
+                                </div>
+                                <div className="cart-actions">
+                                    <button className="clear-cart-btn" onClick={() => {
+                                        if (confirm('האם אתה בטוח שברצונך לנקות את הסל?')) {
+                                            ShoppingCart.clear();
+                                            setCartItems([]);
+                                        }
+                                    }}>נקה סל</button>
+                                    <button className="checkout-btn" onClick={() => {
+                                        const customerName = prompt('שם הלקוח:');
+                                        const customerPhone = prompt('מספר טלפון:');
+                                        
+                                        if (customerName && customerPhone) {
+                                            const order = OrdersManager.addOrder({
+                                                items: [...cartItems],
+                                                total: ShoppingCart.getTotal(),
+                                                customerInfo: {
+                                                    name: customerName,
+                                                    phone: customerPhone
+                                                }
+                                            });
+                                            
+                                            alert(`הזמנה #${order.id} התקבלה! תודה על ההזמנה ${customerName}!`);
+                                            ShoppingCart.clear();
+                                            setCartItems([]);
+                                            onClose();
+                                        }
+                                    }}>הזמן עכשיו 💳</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Admin Panel
+        const AdminPanel = () => {
+            const [activeTab, setActiveTab] = useState('stats');
+            const [orders, setOrders] = useState(OrdersManager.getOrders());
+            const [prices, setPrices] = useState(PriceManager.getPrices());
+            
+            const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+            const pendingOrders = orders.filter(order => order.status === 'pending');
+            
+            const updateOrderStatus = (orderId, newStatus) => {
+                OrdersManager.updateOrderStatus(orderId, newStatus);
+                setOrders(OrdersManager.getOrders());
+            };
+            
+            const updatePrice = (category, itemIndex, size, newPrice) => {
+                if (PriceManager.updatePrice(category, itemIndex, size, newPrice)) {
+                    setPrices(PriceManager.getPrices());
+                    PRODUCTS_DATA = PriceManager.getPrices();
+                    alert('המחיר עודכן בהצלחה!');
+                }
+            };
+            
+            return (
+                <div className="admin-panel">
+                    <section className="hero">
+                        <div className="container">
+                            <h1>פאנל ניהול - הדרים</h1>
+                            <p>שלום {UserManager.getCurrentUser()}, ברוך הבא לפאנל הניהול</p>
+                        </div>
+                    </section>
+                    
+                    <section className="container">
+                        <div className="admin-tabs">
+                            <button 
+                                className={activeTab === 'stats' ? 'active' : ''}
+                                onClick={() => setActiveTab('stats')}
+                            >
+                                📊 סטטיסטיקות
+                            </button>
+                            <button 
+                                className={activeTab === 'orders' ? 'active' : ''}
+                                onClick={() => setActiveTab('orders')}
+                            >
+                                🛒 הזמנות ({pendingOrders.length})
+                            </button>
+                            <button 
+                                className={activeTab === 'prices' ? 'active' : ''}
+                                onClick={() => setActiveTab('prices')}
+                            >
+                                💰 עריכת מחירים
+                            </button>
+                        </div>
+                        
+                        <div className="admin-content">
+                            {activeTab === 'stats' && (
+                                <div className="admin-section">
+                                    <h2>📊 סטטיסטיקות</h2>
+                                    <div className="stats-grid">
+                                        <div className="stat-card">
+                                            <div className="stat-icon">📦</div>
+                                            <h3>סה"כ הזמנות</h3>
+                                            <p>{orders.length}</p>
+                                        </div>
+                                        <div className="stat-card">
+                                            <div className="stat-icon">💰</div>
+                                            <h3>סה"כ הכנסות</h3>
+                                            <p>{totalRevenue}₪</p>
+                                        </div>
+                                        <div className="stat-card">
+                                            <div className="stat-icon">⏳</div>
+                                            <h3>הזמנות ממתינות</h3>
+                                            <p>{pendingOrders.length}</p>
+                                        </div>
+                                        <div className="stat-card">
+                                            <div className="stat-icon">🛒</div>
+                                            <h3>פריטים בסל</h3>
+                                            <p>{ShoppingCart.items.length}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {activeTab === 'orders' && (
+                                <div className="admin-section">
+                                    <h2>🛒 ניהול הזמנות</h2>
+                                    {orders.length === 0 ? (
+                                        <p>אין הזמנות עדיין</p>
+                                    ) : (
+                                        <div className="orders-list">
+                                            {orders.map(order => (
+                                                <div key={order.id} className="order-card">
+                                                    <div className="order-header">
+                                                        <h3>הזמנה #{order.id}</h3>
+                                                        <span className={`order-status status-${order.status}`}>
+                                                            {order.status === 'pending' ? 'ממתין' : 
+                                                             order.status === 'preparing' ? 'בהכנה' : 'הושלם'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="order-details">
+                                                        <p><strong>תאריך:</strong> {order.date}</p>
+                                                        <p><strong>לקוח:</strong> {order.customerInfo.name}</p>
+                                                        <p><strong>טלפון:</strong> {order.customerInfo.phone}</p>
+                                                        <p><strong>סה"כ:</strong> {order.total}₪</p>
+                                                    </div>
+                                                    <div className="order-items">
+                                                        <h4>מוצרים:</h4>
+                                                        {order.items.map((item, index) => (
+                                                            <p key={index}>{item.product} - {item.size} - {item.price}₪</p>
+                                                        ))}
+                                                    </div>
+                                                    <div className="order-actions">
+                                                        {order.status === 'pending' && (
+                                                            <>
+                                                                <button 
+                                                                    onClick={() => updateOrderStatus(order.id, 'preparing')}
+                                                                    className="btn-preparing"
+                                                                >
+                                                                    התחל הכנה
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => updateOrderStatus(order.id, 'completed')}
+                                                                    className="btn-completed"
+                                                                >
+                                                                    הושלם
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                        {order.status === 'preparing' && (
+                                                            <button 
+                                                                onClick={() => updateOrderStatus(order.id, 'completed')}
+                                                                className="btn-completed"
+                                                            >
+                                                                הושלם
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            
+                            {activeTab === 'prices' && (
+                                <div className="admin-section">
+                                    <h2>💰 עריכת מחירים</h2>
+                                    <div className="price-editor">
+                                        {Object.entries(prices).map(([categoryKey, category]) => (
+                                            <div key={categoryKey} className="category-prices">
+                                                <h3>{category.icon} {category.title}</h3>
+                                                {category.items.map((product, itemIndex) => (
+                                                    <div key={itemIndex} className="product-price-editor">
+                                                        <h4>{product.name}</h4>
+                                                        <div className="price-inputs">
+                                                            <div className="price-input-group">
+                                                                <label>S:</label>
+                                                                <input 
+                                                                    type="number"
+                                                                    value={product.prices.S}
+                                                                    onChange={(e) => updatePrice(categoryKey, itemIndex, 'S', e.target.value)}
+                                                                />
+                                                                <span>₪</span>
+                                                            </div>
+                                                            <div className="price-input-group">
+                                                                <label>M:</label>
+                                                                <input 
+                                                                    type="number"
+                                                                    value={product.prices.M}
+                                                                    onChange={(e) => updatePrice(categoryKey, itemIndex, 'M', e.target.value)}
+                                                                />
+                                                                <span>₪</span>
+                                                            </div>
+                                                            <div className="price-input-group">
+                                                                <label>L:</label>
+                                                                <input 
+                                                                    type="number"
+                                                                    value={product.prices.L}
+                                                                    onChange={(e) => updatePrice(categoryKey, itemIndex, 'L', e.target.value)}
+                                                                />
+                                                                <span>₪</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </section>
+                </div>
+            );
+        };
+
+        // Footer
+        const Footer = () => (
+            <footer className="footer">
+                <div className="container">
+                    <div className="footer-content">
+                        <div className="footer-section">
+                            <h3>🍊 הדרים</h3>
+                            <p>מיצים סחוטים טריים ושייקים בריאים</p>
+                            <p>קרית אונו (ליד הבקום)</p>
+                        </div>
+                        <div className="footer-section">
+                            <h4>פרטי התקשרות</h4>
+                            <p>📞 050-123465</p>
+                            <p>👤 יקיר כהן</p>
+                        </div>
+                        <div className="footer-section">
+                            <h4>שעות פעילות</h4>
+                            <p>א-ה: 7:00-20:00</p>
+                            <p>ו: 7:00-15:00</p>
+                        </div>
+                    </div>
+                    <div className="footer-bottom">
+                        <p>&copy; 2024 הדרים - מיצים סחוטים ושייקים בריאים. כל הזכויות שמורות.</p>
+                        <p style={{ marginTop: '0.5rem', opacity: '0.8' }}>נבנה באהבה ❤️</p>
+                    </div>
+                </div>
+            </footer>
+        );
+
+        // Main App
+        const App = () => {
+            const [currentPage, setCurrentPage] = useState('home');
+            const [isCartOpen, setIsCartOpen] = useState(false);
+            const [cartItemCount, setCartItemCount] = useState(0);
+            const [isAdmin, setIsAdmin] = useState(UserManager.isLoggedIn());
+
+            useEffect(() => {
+                const updateCartCount = () => {
+                    const count = ShoppingCart.items.reduce((sum, item) => sum + item.quantity, 0);
+                    setCartItemCount(count);
+                };
+                updateCartCount();
+                const interval = setInterval(updateCartCount, 1000);
+                return () => clearInterval(interval);
+            }, []);
+
+            const handlePageChange = (page) => {
+                setCurrentPage(page);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            const renderCurrentPage = () => {
+                switch (currentPage) {
+                    case 'home': return <HomePage />;
+                    case 'products': return <ProductsPage />;
+                    case 'about': return <AboutPage />;
+                    case 'contact': return <ContactPage />;
+                    case 'admin': return isAdmin ? <AdminPanel /> : <HomePage />;
+                    default: return <HomePage />;
+                }
+            };
+
+            return (
+                <div className="app">
+                    <Header 
+                        currentPage={currentPage} 
+                        onPageChange={handlePageChange}
+                        onCartToggle={() => setIsCartOpen(!isCartOpen)}
+                        cartItemCount={cartItemCount}
+                        isAdmin={isAdmin}
+                    />
+                    <main className="main-content">
+                        {renderCurrentPage()}
+                    </main>
+                    <ShoppingCartModal 
+                        isOpen={isCartOpen} 
+                        onClose={() => setIsCartOpen(false)} 
+                    />
+                    <Footer />
+                </div>
+            );
+        };
+
+        // יצירת root עם React 18 API החדש
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
