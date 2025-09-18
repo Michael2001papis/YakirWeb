@@ -210,7 +210,7 @@
                     <div className="container">
                         <div className="header-content">
                             <a href="#" className="logo" onClick={(e) => { e.preventDefault(); onPageChange('home'); }}>
-                                🍊 הדרים
+                                <img src="poto/logo.png" alt="הדרים" />
                             </a>
                             <nav className={`nav ${isMobileMenuOpen ? 'active' : ''}`}>
                                 <a href="#" className={currentPage === 'home' ? 'active' : ''} 
@@ -250,8 +250,13 @@
                                         🚪
                                     </button>
                                 )}
-                                <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-                                    {isMobileMenuOpen ? '✕' : '☰'}
+                                <button className={`mobile-menu-btn ${isMobileMenuOpen ? 'open' : ''}`} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+                                    <span className="hamburger" aria-hidden="true">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </span>
+                                    <span className="sr-only">תפריט</span>
                                 </button>
                             </div>
                         </div>
@@ -279,7 +284,7 @@
         // Home Page
         const HomePage = () => (
             <div className="fade-in">
-                <section className="hero">
+                <section className="hero hero-with-logo">
                     <div className="container">
                         <h1>ברוכים הבאים להדרים</h1>
                         <p>מיצים סחוטים טריים ושייקים בריאים בקרית אונו</p>
@@ -287,18 +292,18 @@
                     </div>
                 </section>
                 <section className="container">
-                    <div className="products-grid">
-                        <div className="product-card slide-in-left">
+                    <div className="products-grid reveal">
+                        <div className="product-card slide-in-left reveal">
                             <div className="product-icon">🍊</div>
                             <h3>מיצים סחוטים</h3>
                             <p>מיצים טריים וסחוטים במקום</p>
                         </div>
-                        <div className="product-card slide-in-right">
+                        <div className="product-card slide-in-right reveal">
                             <div className="product-icon">🥤</div>
                             <h3>שייקים בריאים</h3>
                             <p>שייקים מזינים וטעימים</p>
                         </div>
-                        <div className="product-card slide-in-left">
+                        <div className="product-card slide-in-left reveal">
                             <div className="product-icon">🧊</div>
                             <h3>מרעננים</h3>
                             <p>משקאות מרעננים עם נענע</p>
@@ -404,7 +409,7 @@
         // Products Page
         const ProductsPage = () => (
             <div className="fade-in">
-                <section className="hero">
+                <section className="hero hero-with-logo">
                     <div className="container">
                         <h1>המוצרים שלנו</h1>
                         <p>כל המוצרים שלנו מוכנים במקום ממצרכים טריים ואיכותיים</p>
@@ -417,7 +422,7 @@
                                 <span className="category-icon">{category.icon}</span>
                                 {category.title}
                             </h2>
-                            <div className="products-grid">
+                            <div className="products-grid reveal">
                                 {category.items.map((product, index) => (
                                     <ProductCard
                                         key={index}
@@ -435,7 +440,7 @@
         // About Page
         const AboutPage = () => (
             <div className="fade-in">
-                <section className="hero">
+                <section className="hero hero-with-logo">
                     <div className="container">
                         <h1>אודות הדרים</h1>
                         <p>הסיפור שלנו מתחיל באהבה למיצים טריים</p>
@@ -468,7 +473,7 @@
         // Contact Page
         const ContactPage = () => (
             <div className="fade-in">
-                <section className="hero">
+                <section className="hero hero-with-logo">
                     <div className="container">
                         <h1>צור קשר</h1>
                         <p>נשמח לשמוע מכם</p>
@@ -608,7 +613,7 @@
             
             return (
                 <div className="admin-panel">
-                    <section className="hero">
+                    <section className="hero hero-with-logo">
                         <div className="container">
                             <h1>פאנל ניהול - הדרים</h1>
                             <p>שלום {UserManager.getCurrentUser()}, ברוך הבא לפאנל הניהול</p>
@@ -785,7 +790,7 @@
                 <div className="container">
                     <div className="footer-content">
                         <div className="footer-section">
-                            <h3>🍊 הדרים</h3>
+                            <img src="poto/logo.png" alt="הדרים" className="brand-logo" />
                             <p>מיצים סחוטים טריים ושייקים בריאים</p>
                             <p>קרית אונו (ליד הבקום)</p>
                         </div>
@@ -840,6 +845,21 @@
                     default: return <HomePage />;
                 }
             };
+
+            useEffect(() => {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('reveal-in');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.08, rootMargin: '0px 0px -10% 0px' });
+
+                document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+                return () => observer.disconnect();
+            }, [currentPage]);
 
             return (
                 <div className="app">
